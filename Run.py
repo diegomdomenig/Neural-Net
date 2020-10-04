@@ -16,7 +16,7 @@
 import Mnist
 
 #(nOfLayers, nOfActivations, epochs)
-model = Mnist.Mnist(3, 40, 20)
+model = Mnist.Mnist(3, 40, 200)
 model.load_data()
 model.preprocess_data()
 model.create_network()
