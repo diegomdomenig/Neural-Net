@@ -1,0 +1,134 @@
+This document includes the math behind the neural network.
+
+The parameters of the network are:
+
+input, output, input_test, output_test, nOfLayers, nOfActivations and epochs.
+
+The input is a matrix of size N x M, where N is the number of examples from the
+training set to use and M is the number of pixels of the mnist images, which are
+784. The output is a matrix of size N x K, where N, again, is the number of
+examples from the training set to use and K equals 10, which is the number of
+classifications possible for every training example. K is an array structured in
+a way that the index of the correct classification is represented by a 1. If the
+label of an image was 5, then the output array of that image would be
+[0,0,0,0,0,1,0,0,0,0], because the 1 is at index 5. input_test and output_test
+are structured the same, but they are from the test dataset. nOfLayers is an
+integer and represents the number of hidden layers of the network, so the total
+number of layers, including the input and output layers would be nOfLayers + 2.
+nOfActivations is an integer and represents the number of activations, or
+neurons, per hidden layer. epochs is an integer and represents the number of
+cycles the neural network completes on the training set.
+
+Each hidden layer consists of a matrix of weights, a vector of biases and a
+matrix of activations. The weights have the the dimensions Q x R, where Q is
+the number of columns of the activations of the previous layer and R is the
+number of columns of the activations of the current layer. If our input layer
+had the dimensions of 10 x 784 (meaning 10 training images with 784 pixels per
+image) and we had specified that we want 20 activations per layer (so the shape
+of each hidden layer would be 10 x 20), then the weight matrix connecting the
+input matrix and the activation matrix of the first layer would have the
+dimensions 784 x 20. The length of the bias vector is equal to the number of
+columns of the activation matrix  of the current layer. In our previous example,
+the bias vector would have a length of 20, since the number of activations of
+each layer is equal to 20. The number of weight matrices equals nOfLayers + 1,
+and so does the number of bias vectors.
+
+The feedforward algorithm is used to compute the output matrix given an input
+matrix, weight matrices, and a bias vectors. Once it has the output matrix, it
+computes the total cost of the network, which the back propagation algorithm
+will try to minimize. If we call the activation matrix of a layer a(L), where L
+is the index of the current layer, then a(L) is computed with the following
+equation:
+
+a(L) = sigmoid(a(L-1) · w(L) + b(L)),
+
+where w(L) is the weight matrix and b(L) the bias vector of that layer. The
+multiplication symbol "·" represents dot multiplication, which is the
+standard of multiplying two matrices together. (implemented with numpy.dot). In
+the implementation of the network, the linear system a(L-1) x w(L) + b(L) is
+summarized with the notation z(L), so that a(L) = sigmoid(z(L)). The sigmoid
+function is non-linear and has a domain of -∞ < x < ∞ and a range of 0 < x < 1.
+The sigmoid function looks like this:
+
+s(x) = 1 / (1 + e^-x)
+
+The feedforward algorithm is a recursive function, where every activation matrix
+depends on the activations of the previous layer. The process is repeated all
+the way to the output matrix. The Cost is then calculated by squaring the
+difference between the network's output and the expected output:
+
+C = (output - expected)^2
+
+Once all the activations in every layer have been calculated, the network then
+has to adjust the weights and biases to minimize the Cost function. In essence,
+what we want to know is how much every weight contributed to the Cost. This
+means that we take the derivative of the Cost with respect to the respective
+weights and biases in order to compose a weight and bias gradient which we can
+use to update the weights and biases by. Since the cost function is one giant
+layered function, we use partial derivatives to unravel it. The Cost function
+for a 3-layered sample network is shown below.
+
+C = ( s[ s[ s[ a(L-3) · w(L-2) + b(L-2)] · w(L-1) + b(L-1)] · w(L) + b(L) ] - y)^2
+
+In this example, s represents the sigmoid function and y represents the expected
+output. L is the index of the output layer. Everything else is the same from
+previous examples. This nested function quickly becomes very hard to keep track
+of, so we split up the function into its components:
+
+C = (a(L) - y)^2
+a(L) = s(z(L))
+z(L) = a(L-1) · w(L) + b(L)
+a(L-1) = s(z(L-1))
+z(L-1) = a(L-2) · w(L-1) + b(L-1)
+a(L-2) = s(z(L-2))
+z(L-2) = a(L-3) · w(L-2) + b(L-2)
+
+Remember that a and w represent matrices and b represents a vector. To add
+layers to the neural network, one would just have to add the two following lines
+for every new layer:
+
+a(L-n) = s(z(L-n))
+z(L-n) = a(L-(n+1)) · w(L-n) + b(L-n)
+
+Because the Cost function is now composed of many partial functions, it becomes
+a lot easier to take the derivative of the Cost with respect to a wight or bias
+matrix:
+
+dC/dw(L) = dC/da(L) * da(L)/dz(L) * dz(L)/dw(L)
+
+This example computes the derivative of the Cost with respect to the last weight
+matrix. The "d" represents an infinitely small change in a variable and denotes
+the derivative of a function. To compute the weight and bias gradients of the
+previous layers, we add to this chain of derivatives. The derivative of the
+Cost with respect to the second to last weight matrix would be:
+
+dC/dw(L) = dC/da(L) * da(L)/dz(L) * dz(L)/da(L-1) * da(L-1)/dz(L-1) * dz(L-1)/dw(L-1)
+
+To compute the respective derivatives, we can apply simple derivative rules:
+
+dC/da(L) = 2(a(L) - y)
+da(L)/dz(L) = s'(z(L)) -->  s' represents the derivative of the sigmoid function,
+                            which is s(x) * (1 - s(x))
+dz(L)/da(L-1) = w(L)
+da(L-1)/dz(L-1) = s'(z(L-1))
+dz(L-1)/dw(L-1) = w(L-1)
+dz(L-1)/db(L-1) = 1
+
+Unfortunately, the dimensions of the matrices and vectors don't match up with
+certain multiplications. When multiplying the derivative term by the weight
+matrix which represents dz(n)/da(n-1), we have to transpose the weight matrix to
+make the dimensions work for dot multiplication. Similarly, when calculating the
+weight gradient, we have to transpose the activation matrix so that its
+dimensions work for dot multiplication with the derivative term.
+
+Now that we have the weight and bias gradients, we can use them to update the
+weights and biases. The equation for updating the weights and biases is as
+following:
+
+w(n) := w(n) - l * dC/dw(n)
+b(n) := b(n) - l * dC/db(n)
+
+The symbol ":=" represents assignment, so rather than a mathematical statement
+it means that the value on the left is being updated by the value on the right.
+The "l" represents the learning rate, which is usually set between 0.01 and
+0.0001.
