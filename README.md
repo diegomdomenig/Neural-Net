@@ -7,7 +7,7 @@ A Dense Neural Net implemented from scratch with Python 3
 - mlxtend `pip3 install mlxtend`
 
 ## Downloading the Images
-In order to test out the Neural Net on the MNIST Dataset, you will have to download the images and labels here. Make sure to keep the file names as they are and add them to your your project's directory
+In order to test out the Neural Net on the MNIST Dataset, you will have to download the images and labels here. Make sure to keep the file names as they are and add them to your your project's directory. (Files can also be found at http://yann.lecun.com/exdb/mnist)
 
 - [Training Set Images](http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz)
 - [Training Set Labels](http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz)
