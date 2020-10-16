@@ -38,8 +38,6 @@ class Network:
         self.learningRate = 0.1
         self.batchsize = 64
 
-        self.myfirsttime = True
-
     #sigmoid function and its derivative
     def sigmoid(self, x, derivative=False):
        if derivative:
